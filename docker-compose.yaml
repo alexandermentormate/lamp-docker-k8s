@@ -4,12 +4,18 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: webapp:2.0
+    image: webapp:1.0
     ports:
       - "80:5000"
     restart: always
     networks:
       - webnet
+    healthcheck:
+      test:
+        ["CMD", "curl", "-f", "http://localhost:5000/health", "||", "exit 1"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
 
 networks:
   webnet:

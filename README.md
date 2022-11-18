@@ -1,7 +1,29 @@
-# Minikube + Docker + Flask
+# Kubernetes / Helm + Docker / docker compose + python / Flask
 
-    Video for reference - https://www.youtube.com/watch?v=SdTzwYmsgoU
+- Video for reference - https://www.youtube.com/watch?v=SdTzwYmsgoU
 
+## Prerequisites
+
+- Required packages:
+
+  - python3-venv
+  - Docker (version 20.10.20)
+  - Docker Compose (version v2.3.3)
+  - minikube (v1.27.1)
+  - kubectl (Client Version: v1.20.4; Server Version: v1.25.2)
+  - helm (v3.7.0)
+
+- Minikube **started**
+- Docker image created locally (otherwise when we create k8s deployment the pods will return `STATUS: ErrImagePull`)
+
+## Docker
+
+- Obtain the minikube IP:
+  ```bash
+  $ minikube ip
+  192.168.59.100
+  ```
+  In this case it's `192.168.59.100` and that's where the `DOCKER_HOST` will point to.
 - Point the local docker to minikube
   ```bash
   minikube docker-env
@@ -43,4 +65,151 @@
 
   ```bash
   docker run -d -p 80:5000 --name web webapp:1.0
+  ```
+
+## docker compose
+
+- Create docker-compose.yaml file with the following content:
+
+  ```yaml
+  version: "3.9"
+  services:
+  web:
+    build:
+    context: .
+    dockerfile: Dockerfile
+    image: webapp:1.0
+    ports:
+      - "80:5000"
+    restart: always
+    networks:
+      - webnet
+
+  networks:
+  webnet:
+  ```
+
+- Build and run the app from `docker compose` (`docker-compose` if you're using **v1**)
+  ```bash
+  docker compose build
+  docker compose up -d
+  ```
+
+## Kubernetes (**k8s**)
+
+- Create new directory for k8s called `kubernetes`.
+- Create `kubernetes/deployment.yaml` file
+
+  ```yaml
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+    name: python-webapp
+    labels:
+        app: web
+    spec:
+    replicas: 2
+    selector:
+        matchLabels:
+        app: web
+    template:
+        metadata:
+        labels:
+            app: web
+        spec:
+        containers:
+            - name: webapp
+            image: webapp:1.0
+            ports:
+                - containerPort: 5000
+  ```
+
+- Create `kubernetes/service.yaml` file
+
+  ```yaml
+  apiVersion: v1
+  kind: Service
+  metadata:
+  name: web-service
+  spec:
+  type: NodePort
+  selector:
+    app: web
+  ports:
+    - port: 80
+      targetPort: 5000
+  ```
+
+- Apply both the k8s deployment and service:
+
+  ```bash
+  kubectl apply -f deployment.yaml
+  kubectl apply -f service.yaml
+  ```
+
+- Check the running pods and service and obtain the allocated service port
+
+  ```bash
+  $ kubectl get po,svc
+  NAME                                 READY   STATUS    RESTARTS   AGE
+    pod/python-webapp-5cc9947b56-2cqhb   1/1     Running   0          72s
+    pod/python-webapp-5cc9947b56-fv7xk   1/1     Running   0          72s
+
+    NAME                  TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+    service/kubernetes    ClusterIP   10.96.0.1        <none>        443/TCP        15d
+    service/web-service   NodePort    10.107.123.136   <none>        80:31361/TCP   65s
+
+  ```
+
+  In this case the port is `31361` so if we combine it with the `minikube IP` / `DOCKER_HOST` (**http://192.168.59.100:31361/**) in the browser we should have the flask app up and running from a docker container, inside kubernetes.
+
+## Helm
+
+- Create helm **chart** called `webapp` (with some edits to the auto-generated chart, for our specific setup)
+
+  ```bash
+  helm create webapp
+  ```
+
+- Create new template
+
+  ```bash
+  helm template webapp
+  ```
+
+- Install the generated helm template
+
+  ```bash
+  $ helm install web webapp/
+  NAME: web
+  LAST DEPLOYED: Fri Nov 18 16:25:39 2022
+  NAMESPACE: default
+  STATUS: deployed
+  REVISION: 1
+  TEST SUITE: None
+  NOTES:
+  1. Get the application URL by running these commands:
+    export NODE_PORT=$(kubectl get --namespace default -o jsonpath="{.spec.ports[0].nodePort}" services web-webapp)
+    export NODE_IP=$(kubectl get nodes --namespace default -o jsonpath="{.items[0].status.addresses[0].address}")
+    echo http://$NODE_IP:$NODE_PORT
+
+  ```
+
+- List the newly created pods and service
+
+  ```bash
+  $ kubectl get po,svc
+  NAME                              READY   STATUS    RESTARTS   AGE
+  pod/web-webapp-5bf8dc7b56-vwh2r   1/1     Running   0          46s
+  pod/web-webapp-5bf8dc7b56-z5cbz   1/1     Running   0          46s
+
+  NAME                 TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
+  service/kubernetes   ClusterIP   10.96.0.1      <none>        443/TCP        15d
+  service/web-webapp   NodePort    10.111.17.41   <none>        80:31720/TCP   46s
+  ```
+
+- Uninstall the release
+  ```bash
+  $ helm uninstall web
+  release "web" uninstalled
   ```
