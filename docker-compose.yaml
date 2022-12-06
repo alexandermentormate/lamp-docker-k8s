@@ -1,21 +1,81 @@
 version: "3.9" # optional since v1.27.0
 services:
-  web:
+  flask:
     build:
       context: .
       dockerfile: Dockerfile
     image: webapp:1.0
     ports:
-      - "80:5000"
-    restart: always
-    networks:
-      - webnet
+      - "5000:5000"
+    restart: unless-stopped
     healthcheck:
       test:
         ["CMD", "curl", "-f", "http://localhost:5000/health", "||", "exit 1"]
       interval: 30s
       timeout: 30s
       retries: 5
+    environment:
+      APP_ENV: "prod"
+      APP_DEBUG: "False"
+      APP_PORT: 5000
+      MONGODB_DATABASE: flaskdb
+      MONGODB_USERNAME: flaskuser
+      MONGODB_PASSWORD: mongopass
+      MONGODB_HOSTNAME: mongodb
+    volumes:
+      - appdata:/app/src
+    depends_on:
+      - mongodb
+    networks:
+      - frontend
+      - backend
+
+  mongodb:
+    image: mongo:4.0.8
+    container_name: mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodbdata:/data/db
+    networks:
+      - backend
+
+  webserver:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    image: webserver:1.0
+    container_name: webserver
+    restart: unless-stopped
+    environment:
+      APP_ENV: "prod"
+      APP_NAME: "webserver"
+      APP_DEBUG: "false"
+      SERVICE_NAME: "webserver"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - nginxdata:/var/log/nginx
+    depends_on:
+      - flask
+    networks:
+      - frontend
 
 networks:
-  webnet:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+
+volumes:
+  mongodbdata:
+    driver: local
+  appdata:
+    driver: local
+  nginxdata:
+    driver: local
