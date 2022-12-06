@@ -100,7 +100,7 @@
 - Basic local deployment `kubernetes_basics/` -> README.md
 - Microservice based deployment `kubernetes/` -> README.md
 
-## Helm
+## Helm (this example is only for kubernetes_basics)
 
 - Create helm **chart** called `webapp` (with some edits to the auto-generated chart, for our specific setup)
 
