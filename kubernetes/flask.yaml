@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python-flaskapp
+  labels:
+    app: flask
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: flask
+  template:
+    metadata:
+      labels:
+        app: flask
+    spec:
+      containers:
+        - name: flaskapp
+          image: flaskapp:1.0
+          ports:
+            - containerPort: 5000
+
+        - name: nginx
+          image: nginx
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - mountPath: /etc/nginx/conf.d
+              name: nginx-config
+            - mountPath: /app/public
+              name: public-dir
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: flask-nginx
+        - name: public-dir
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: flask
+  ports:
+    - port: 80
+      targetPort: 80
