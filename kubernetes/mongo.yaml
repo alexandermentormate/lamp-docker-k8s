@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+spec:
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+        - name: mongo
+          image: mongo
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: storage
+              mountPath: /data/db
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  [
+                    "/bin/sh",
+                    "-c",
+                    "mongosh --eval \"if (db.getSiblingDB('${MONGODB_DATABASE}').getUser('${MONGODB_USERNAME}') == null) { db.getSiblingDB('${MONGODB_DATABASE}').createUser( { user: '${MONGODB_USERNAME}', pwd: '${MONGODB_PASSWORD}', roles: [ { role: 'dbAdmin', db: '${MONGODB_DATABASE}' },] } ); }\"",
+                  ]
+          envFrom:
+            - secretRef:
+                name: flaskapp-secrets
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: mongo-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+spec:
+  selector:
+    app: mongo
+  ports:
+    - port: 27017
+      targetPort: 27017

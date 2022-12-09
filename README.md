@@ -16,6 +16,21 @@
 - Minikube **started**
 - Docker image created locally (otherwise when we create k8s deployment the pods will return `STATUS: ErrImagePull`)
 
+## Quick local setup way. **The prerequisites must be met!**
+
+  ```bash
+  sh deploy.sh
+  ```
+
+  That's all and you should be good to go if you open **dev.k8s** in the browser.
+
+  For more options use:
+  ```bash
+  sh deploy.sh -h
+  ```
+
+---
+# Step by step guide
 ## Docker
 
 - Obtain the minikube IP:
@@ -67,7 +82,7 @@
   docker run -d -p 80:5000 --name web webapp:1.0
   ```
 
-## docker compose
+## Docker Compose
 
 - Create docker-compose.yaml file with the following content:
 
@@ -97,73 +112,10 @@
 
 ## Kubernetes (**k8s**)
 
-- Create new directory for k8s called `kubernetes`.
-- Create `kubernetes/deployment.yaml` file
+- Basic local deployment `kubernetes_basics/` -> README.md
+- Microservice based deployment `kubernetes/` -> README.md
 
-  ```yaml
-    apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-    name: python-webapp
-    labels:
-        app: web
-    spec:
-    replicas: 2
-    selector:
-        matchLabels:
-        app: web
-    template:
-        metadata:
-        labels:
-            app: web
-        spec:
-        containers:
-            - name: webapp
-            image: webapp:1.0
-            ports:
-                - containerPort: 5000
-  ```
-
-- Create `kubernetes/service.yaml` file
-
-  ```yaml
-  apiVersion: v1
-  kind: Service
-  metadata:
-  name: web-service
-  spec:
-  type: NodePort
-  selector:
-    app: web
-  ports:
-    - port: 80
-      targetPort: 5000
-  ```
-
-- Apply both the k8s deployment and service:
-
-  ```bash
-  kubectl apply -f deployment.yaml
-  kubectl apply -f service.yaml
-  ```
-
-- Check the running pods and service and obtain the allocated service port
-
-  ```bash
-  $ kubectl get po,svc
-  NAME                                 READY   STATUS    RESTARTS   AGE
-    pod/python-webapp-5cc9947b56-2cqhb   1/1     Running   0          72s
-    pod/python-webapp-5cc9947b56-fv7xk   1/1     Running   0          72s
-
-    NAME                  TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
-    service/kubernetes    ClusterIP   10.96.0.1        <none>        443/TCP        15d
-    service/web-service   NodePort    10.107.123.136   <none>        80:31361/TCP   65s
-
-  ```
-
-  In this case the port is `31361` so if we combine it with the `minikube IP` / `DOCKER_HOST` (**http://192.168.59.100:31361/**) in the browser we should have the flask app up and running from a docker container, inside kubernetes.
-
-## Helm
+## Helm (this example is only for kubernetes_basics)
 
 - Create helm **chart** called `webapp` (with some edits to the auto-generated chart, for our specific setup)
 
