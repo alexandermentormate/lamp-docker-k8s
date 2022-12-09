@@ -36,18 +36,23 @@ if [ "$1" = "--destroy" ]
 fi
 
 
-echo "Creating the database credentials..."
+echo "Include the ${RED}dev.k8s${NC} domain to /etc/hosts if not present"
+
+grep -qxF "$(minikube ip) dev.k8s" /etc/hosts || sudo bash -c "echo \"$(minikube ip) dev.k8s\" >> /etc/hosts"
+
+
+echo "Creating the database credentials"
 
 kubectl apply -f ./kubernetes/secrets.yaml
 
 
-echo "Creating the mongo volume..."
+echo "Creating the mongo volume"
 
 kubectl apply -f ./kubernetes/mongo-pv.yaml
 kubectl apply -f ./kubernetes/mongo-pvc.yaml
 
 
-echo "Creating the mongodb deployment and service..."
+echo "Creating the mongodb deployment and service"
 
 kubectl create -f ./kubernetes/mongo.yaml
 
