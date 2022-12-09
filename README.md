@@ -44,7 +44,9 @@
   ```
 
 ---
-# Step by step guide
+# Step-by-step guide
+  The existing step-by-step guide derives from the existing codebase. **If you follow it, you should start a clean project!**
+  The purpose of it is to understand how Docker and Kubernetes and Helm work, before applying this for the main project.
 ## Docker
 
 - Obtain the minikube IP:
@@ -126,8 +128,8 @@
 
 ## Kubernetes (**k8s**)
 
-- Basic local deployment `kubernetes_basics/` -> README.md
-- Microservice based deployment `kubernetes/` -> README.md
+- Basic local deployment for the step-by-step guide `kubernetes_basics/` -> README.md
+- Microservice based deployment for the existing prod codebase `kubernetes/` -> README.md
 
 ## Helm (this example is only for kubernetes_basics)
 
