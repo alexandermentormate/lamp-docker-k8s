@@ -5,17 +5,11 @@ from flask import Flask, jsonify, render_template, redirect, request
 from flask_pymongo import PyMongo
 
 application = Flask(__name__)
-# application.config["MONGO_URI"] = 'mongodb://' \
-#         + os.environ['MONGODB_USERNAME'] \
-#         + ':' + os.environ['MONGODB_PASSWORD'] \
-#         + '@' + os.environ['MONGODB_HOSTNAME'] \f
-#         + ':27017/' + os.environ['MONGODB_DATABASE']
-# TODO: Fix secrets
 application.config["MONGO_URI"] = 'mongodb://' \
-        + "flaskuser" \
-        + ':' + "mongopass" \
-        + '@' + "mongo" \
-        + ':27017/' + "flaskdb"
+        + os.environ['MONGODB_USERNAME'] \
+        + ':' + os.environ['MONGODB_PASSWORD'] \
+        + '@' + os.environ['MONGODB_HOSTNAME'] \
+        + ':27017/' + os.environ['MONGODB_DATABASE']
 
 
 mongo = PyMongo(application)
@@ -36,7 +30,7 @@ def hello_world():
 @application.route("/health")
 def health():
     return jsonify(
-        status="UP 6!"
+        status="UP"
     )
 
 
