@@ -80,3 +80,28 @@
   ```
 
   For a better understanding of what happens here, when you make a request to the url **http://dev.k8s/**, the browser will make a request to the minikube instance and will match the ingress with the url defined earlier which will connect to the flask service which will connect to the **nginx** container in the running pod of the **flask** application.
+
+## Local development
+
+- Building the whole project locally, using the `deploy.sh`
+
+  ```bash
+  sh deploy.sh
+  ```
+
+- Updating latest changes by rebuilding the image and restarting the running pods we can use the `-r` or `--rebuild` flag for the `deploy.sh`. If no name is provided the image name will default to **flaskapp:1.0**
+
+  ```bash
+  sh deploy.sh -r <image_name>
+  ```
+
+- Tear down the whole local project
+
+  ```bash
+  sh deploy.sh -d
+  ```
+
+- For more options use:
+  ```bash
+  sh deploy.sh -h
+  ```

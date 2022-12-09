@@ -16,6 +16,21 @@
 - Minikube **started**
 - Docker image created locally (otherwise when we create k8s deployment the pods will return `STATUS: ErrImagePull`)
 
+## Quick local setup way. **The prerequisites must be met!**
+
+  ```bash
+  sh deploy.sh
+  ```
+
+  That's all and you should be good to go if you open **dev.k8s** in the browser.
+
+  For more options use:
+  ```bash
+  sh deploy.sh -h
+  ```
+
+---
+# Step by step guide
 ## Docker
 
 - Obtain the minikube IP:
@@ -67,7 +82,7 @@
   docker run -d -p 80:5000 --name web webapp:1.0
   ```
 
-## docker compose
+## Docker Compose
 
 - Create docker-compose.yaml file with the following content:
 
