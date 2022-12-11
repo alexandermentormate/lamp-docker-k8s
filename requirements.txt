@@ -9,3 +9,4 @@ zipp==3.10.0
 Flask-PyMongo==2.2.0
 requests==2.20.1
 gunicorn
+Django
