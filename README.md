@@ -1,15 +1,15 @@
 # LAMP stack with Kubernetes and Docker
 
 ## Overview
-  This template follows a common **LAMP** architecture in a **containerized environment**, orchestrated by **kubernetes**.
+  This template follows a **MVC** architecture in a **containerized environment**, orchestrated by **kubernetes**.
   The technical stack is interchangeable and the number of services can be scaled up / down in a similar way. The main goal is to have a step-by-step guideline for building projects in the most versatile way possible, following best practices.
 
 - The current project is composed of:
-  - **backend** - `Flask`
-  - **frontend** - (**TODO...**)
-  - **database** - `MongoDb`
-  - **webserver** - `Nginx`
-  - **separate worker** - (**TODO...**)
+  - `backend` - **Flask**
+  - `frontend` - (**TODO...**)
+  - `database` - **MongoDb**
+  - `webserver` - **Nginx**
+  - `separate worker` - (**TODO...**)
 
 - Following these guidelines, we can:
   - Setup groundwork for new projects
