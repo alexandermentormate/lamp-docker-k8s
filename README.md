@@ -1,19 +1,18 @@
 # LAMP stack with Kubernetes and Docker
+  Building project **locally**, that will be in a pre-production ready state. And potentially ready for deployment in a cloud environment. For now aiming for **EKS** and **ECS**.
 
 ## Overview
   This template follows a **MVC** architecture in a **containerized environment**, orchestrated by **kubernetes**.
   The technical stack is interchangeable and the number of services can be scaled up / down in a similar way. The main goal is to have a step-by-step guideline for:
   - Understadning the basics of `Kubernetes`
   - Understanding `Docker` and `Docker compose` and how they interact with `Kubernetes`
-  - Building projects in the most versatile way possible, following best practices.
+  - Building projects (localy) in the most versatile way possible, following best practices.
   - Migrate monolith project to microservices
   - Orchestrate existing containerized project in a cloud agnostic architecture.
 
 ## Prerequisites
 
 - Required packages:
-
-  - python3-venv
   - Docker (version 20.10.20)
   - Docker Compose (version v2.3.3)
   - minikube (v1.27.1)
