@@ -1,5 +1,5 @@
 # LAMP stack with Kubernetes and Docker
-  Building project **locally**, that will be in a pre-production ready state. And potentially ready for deployment in a cloud environment. For now aiming for **EKS** and **ECS**.
+  Building project **locally**, that will be in a pre-production state. And potentially ready for deployment in a cloud environment. For now the goals are **EKS** and **ECS** deployment without too much re-configuration.
 
 ## Overview
   This template follows a **MVC** architecture in a **containerized environment**, orchestrated by **kubernetes**.
