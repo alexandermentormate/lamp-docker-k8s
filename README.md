@@ -88,10 +88,10 @@
 
 - Copy the output and paste it in the shell.
 
-- Build new image with the tag `webapp:1.0`. This will be the main reference that we'll use for our local setup, if we decide to move the a new version, we need to make sure to accommodate this change for all the configuration files.
+- Build new image with the tag `flaskapp:1.0`. This will be the main reference that we'll use for our local setup, if we decide to move the a new version, we need to make sure to accommodate this change for all the configuration files.
 
   ```bash
-  docker build -t webapp:1.0 ./services/backend/
+  docker build -t flaskapp:1.0 ./services/backend/
   ```
   This new image will be build inside the minikube ecosystem, from where we can access it later from the `.yaml` files
 
