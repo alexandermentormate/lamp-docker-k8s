@@ -2,17 +2,10 @@
 
 ## Overview
   This template follows a **MVC** architecture in a **containerized environment**, orchestrated by **kubernetes**.
-  The technical stack is interchangeable and the number of services can be scaled up / down in a similar way. The main goal is to have a step-by-step guideline for building projects in the most versatile way possible, following best practices.
-
-- The current project is composed of:
-  - `backend` - **Flask**
-  - `frontend` - (**TODO...**)
-  - `database` - **MongoDb**
-  - `webserver` - **Nginx**
-  - `separate worker` - (**TODO...**)
-
-- Following these guidelines, we can:
-  - Setup groundwork for new projects
+  The technical stack is interchangeable and the number of services can be scaled up / down in a similar way. The main goal is to have a step-by-step guideline for:
+  - Understadning the basics of `Kubernetes`
+  - Understanding `Docker` and `Docker compose` and how they interact with `Kubernetes`
+  - Building projects in the most versatile way possible, following best practices.
   - Migrate monolith project to microservices
   - Orchestrate existing containerized project in a cloud agnostic architecture.
 
@@ -25,12 +18,11 @@
   - Docker Compose (version v2.3.3)
   - minikube (v1.27.1)
   - kubectl (Client Version: v1.20.4; Server Version: v1.25.2)
-  - helm (v3.7.0)
+  - (optional) helm (v3.7.0)
 
-- Minikube **started**
 - Docker image created locally (otherwise when we create k8s deployment the pods will return `STATUS: ErrImagePull`)
 
-## Quick local setup way. **The prerequisites must be met!**
+## Quick local setup. **The prerequisites must be met!**
 
   ```bash
   sh deploy.sh
@@ -43,11 +35,33 @@
   sh deploy.sh -h
   ```
 
+## Project structure
+
+- `Codebase` - This is the main portion and the lowest level of abstraction that we have. Our value comes from here and our goal is to use it in the most optimal, stable, scalable and versatile way possible. To achieve this we have to separate each main component into it's own `service`, in order to manage them and the communication between them in the best way possible. The current project is composed of the following services:
+  - `backend` - **Flask**
+  - `frontend` - **Vue**
+  - `database` - **MongoDb**
+  - `webserver` - **Nginx**
+  - `separate worker` - (**TODO...**)
 ---
-# Step-by-step guide
-  The existing step-by-step guide derives from the existing codebase. **If you follow it, you should start a clean project!**
-  The purpose of it is to understand how Docker and Kubernetes and Helm work, before applying this for the main project.
+- `Containerization` -
+  This is our second level of abstraction. Containers are a streamlined way to build, test, deploy, and redeploy applications on multiple environments from a developer’s local laptop to an on-premises data center and even the cloud. Benefits of containers include:
+    - Less overhead - containers require less system resources than traditional or hardware virtual machine environments because they don’t include operating system images.
+    - Increased portability - applications running in containers can be deployed easily to multiple different operating systems and hardware platforms.
+    - More consistent operation - devOps teams know applications in containers will run the same, regardless of where they are deployed.
+    - Greater efficiency - containers allow applications to be more rapidly deployed, patched, or scaled.
+    - Better application development - containers support agile and DevOps efforts to accelerate development, test, and production cycles.
+---
+- `Orchestrating` the containers - 
+  This is our third level of abstraction. Containerized applications can get complicated, however. When in production, many might require hundreds to thousands of separate containers in production. This is where container runtime environments such as `Docker` benefit from the use of other tools to orchestrate or manage all the containers in operation. `Kubernetes` **orchestrates the operation of multiple containers in harmony together**. It manages areas like the use of underlying infrastructure resources for containerized applications such as the amount of compute, network, and storage resources required. Orchestration tools like `Kubernetes` **make it easier to automate and scale container-based workloads for live production environments**.
+
 ## Docker
+  As `Docker` is arguably the most popular container runtimes, it'll be our choice here, even though Kubernetes supports numerous container runtimes. A good metaphor that will help us understand how both work together is: Imagine `Kubernetes` as an “operating system” and `Docker containers` as “apps” that you install on the “operating system”.
+ 
+- Start minikube (we'll be using the default driver for it)
+  ```bash
+  minikube start
+  ```
 
 - Obtain the minikube IP:
   ```bash
@@ -55,12 +69,13 @@
   192.168.59.100
   ```
   In this case it's `192.168.59.100` and that's where the `DOCKER_HOST` will point to.
-- Point the local docker to minikube
+
+- **Point the local docker to minikube** - this step is very important, because we have to make sure that all the created images are created in minkube's echosystem and that we can see all the running containers inside it.
   ```bash
   minikube docker-env
   ```
-- Copy the output and paste it in the shell. Example output:
 
+  Example output:
   ```bash
   export DOCKER_TLS_VERIFY="1"
   export DOCKER_HOST="tcp://192.168.59.100:2376"
@@ -72,112 +87,103 @@
 
   ```
 
-- Create a new Dockerfile
+- Copy the output and paste it in the shell.
 
-  ```Dockerfile
-  FROM python:3.10-alpine3.15
-  WORKDIR /app
-  COPY requirements.txt .
-  RUN pip install -r requirements.txt
-  COPY src src
-  EXPOSE 5000
-  HEALTHCHECK --interval=30s --timeout=30s --start-period=30s --retries=5 \
-              CMD curl -f http://localhost:5000/health || exit 1
-  ENTRYPOINT ["python", "./src/app.py"]
-  ```
-
-- Build new image with it it with a new tag `webapp:1.0`
+- Build new image with the tag `webapp:1.0`. This will be the main reference that we'll use for our local setup, if we decide to move the a new version, we need to make sure to accommodate this change for all the configuration files.
 
   ```bash
-  docker build -t webapp:1.0 .
+  docker build -t webapp:1.0 ./services/backend/
   ```
-
-- Create new container from the image, **that will run from minikube**
-
-  ```bash
-  docker run -d -p 80:5000 --name web webapp:1.0
-  ```
+  This new image will be build inside the minikube ecosystem, from where we can access it later from the `.yaml` files
 
 ## Docker Compose
+  `Docker compose` allows you to easily define and deploy your containers and operate multi-container applications at once by using a build definition in the for of `yml`/ `yaml` files. However this is not a production based solution and it's only convenient for local development.
 
-- Create docker-compose.yaml file with the following content:
-
-  ```yaml
-  version: "3.9"
-  services:
-  web:
+- In our `docker-compose.yaml` we define each service that we use in our project. In our case:
+  - `flask` - is our `backend` - **Flask** service. Let's take a look at the more interesting parts.
+    The `build` part points to the `context` (the `sourcecode`) where the `container` for this service will get it's content from and the `Dockerfile` that will be used to create the `image` from.
+    ```yaml
     build:
-    context: .
-    dockerfile: Dockerfile
-    image: webapp:1.0
+        context: ./services/backend
+        dockerfile: Dockerfile
+    ```
+
+    We sepcify the `ports` that we need for our application. In this case flask uses 5000.
+    ```yaml
     ports:
-      - "80:5000"
-    restart: always
+      - "5000:5000"
+    ```
+
+    The `environement` key is used to set env variables for this service.
+    ```yaml
+    environment:
+      APP_ENV: "prod"
+      APP_DEBUG: "False"
+      APP_PORT: 5000
+      MONGODB_DATABASE: flaskdb
+      MONGODB_USERNAME: flaskuser
+      MONGODB_PASSWORD: mongopass
+      MONGODB_HOSTNAME: mongodb
+      MONGODB_PORT: 27017
+    ```
+
+    The `volumes` are the preferred mechanism for **persisting** data generated by and used by the container.
+    ```yaml
+    volumes:
+      - ./services/backend:/app
+    ```
+
+    The `networks` parameter is responsible for defining in which networks the respective service will be a part of. In our case we have custom `backend` for the `flask` service and the `mongodb`.
+    ```yaml
     networks:
-      - webnet
+      - backend
+    ```
 
-  networks:
-  webnet:
-  ```
+  - `mongodb` - is our `database` - **MongoDb** service.
+    Here we specify an existing image that we've pulled from dockerhub and not one we've created ourselves, like in the `flask` service. That's why we do not have a `build` parameter.
+    ```yaml
+    image: mongo:4.0.8
+    ```
+    
+    In our `volumes` we point the service to a bash script called `mongo-init.sh`, responsible for prepopulating the database.
+    ```yaml
+    volumes:
+      - ./services/database/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
+      - mongodbdata:/data/db
+    ```
+  
+  - `webserver` - is our `webserver`- **Nginx** service.
 
+  - `frontend` - is our `frontend` - **Vue** frontend service. Both the `webserver` and `frontend` are a part of the same network, called `frontend`.
+    ```yaml
+    networks:
+      - frontend
+    ```
+
+  - `networks` and `volumes` - as mentioned previously the `networks` are responsible for creating custom communication between services and the `volumes` alocate space for persistent data.
+    ```yaml
+    networks:
+      frontend:
+        driver: bridge
+      backend:
+        driver: bridge
+
+    volumes:
+      mongodbdata:
+        driver: local
+      nginxdata:
+        driver: local
+    ```
 - Build and run the app from `docker compose` (`docker-compose` if you're using **v1**)
   ```bash
-  docker compose build
-  docker compose up -d
+  docker compose up --build -d
   ```
 
 ## Kubernetes (**k8s**)
 
-- Basic local deployment for the step-by-step guide `kubernetes_basics/` -> README.md
+- Basic local deployment for the step-by-step guide and **Helm** basic integration `kubernetes_basics/` -> README.md
 - Microservice based deployment for the existing prod codebase `kubernetes/` -> README.md
 
-## Helm (this example is only for kubernetes_basics)
-
-- Create helm **chart** called `webapp` (with some edits to the auto-generated chart, for our specific setup)
-
-  ```bash
-  helm create webapp
-  ```
-
-- Create new template
-
-  ```bash
-  helm template webapp
-  ```
-
-- Install the generated helm template
-
-  ```bash
-  $ helm install web webapp/
-  NAME: web
-  LAST DEPLOYED: Fri Nov 18 16:25:39 2022
-  NAMESPACE: default
-  STATUS: deployed
-  REVISION: 1
-  TEST SUITE: None
-  NOTES:
-  1. Get the application URL by running these commands:
-    export NODE_PORT=$(kubectl get --namespace default -o jsonpath="{.spec.ports[0].nodePort}" services web-webapp)
-    export NODE_IP=$(kubectl get nodes --namespace default -o jsonpath="{.items[0].status.addresses[0].address}")
-    echo http://$NODE_IP:$NODE_PORT
-
-  ```
-
-- List the newly created pods and service
-
-  ```bash
-  $ kubectl get po,svc
-  NAME                              READY   STATUS    RESTARTS   AGE
-  pod/web-webapp-5bf8dc7b56-vwh2r   1/1     Running   0          46s
-  pod/web-webapp-5bf8dc7b56-z5cbz   1/1     Running   0          46s
-
-  NAME                 TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)        AGE
-  service/kubernetes   ClusterIP   10.96.0.1      <none>        443/TCP        15d
-  service/web-webapp   NodePort    10.111.17.41   <none>        80:31720/TCP   46s
-  ```
-
-- Uninstall the release
-  ```bash
-  $ helm uninstall web
-  release "web" uninstalled
-  ```
+## TODOS
+- Create git subtrees for Kubernetes Basics
+- Create EKS and ECS integration examples in subtrees
