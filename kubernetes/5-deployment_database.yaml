@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mongo
+  name: database-deployment
 spec:
   selector:
     matchLabels:
-      app: mongo
+      app: database-deployment
   template:
     metadata:
       labels:
-        app: mongo
+        app: database-deployment
     spec:
       containers:
-        - name: mongo
+        - name: database-container
           image: mongo
           ports:
             - containerPort: 27017
@@ -30,20 +30,20 @@ spec:
                   ]
           envFrom:
             - secretRef:
-                name: flaskapp-secrets
+                name: database-secrets
           resources: {}
       volumes:
         - name: storage
           persistentVolumeClaim:
-            claimName: mongo-pvc
+            claimName: database-pvc
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: mongo
+  name: database-service
 spec:
   selector:
-    app: mongo
+    app: database-deployment
   ports:
     - port: 27017
       targetPort: 27017

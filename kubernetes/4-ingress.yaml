@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: flask
+  name: frontend-ingress
   namespace: default
 spec:
   rules:
@@ -12,6 +12,6 @@ spec:
             pathType: ImplementationSpecific
             backend:
               service:
-                name: flask
+                name: backend-service
                 port:
                   number: 80

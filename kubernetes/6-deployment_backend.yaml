@@ -1,27 +1,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: python-flaskapp
+  name: backend-deployment
   labels:
-    app: flask
+    app: backend-deployment
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: flask
+      app: backend-deployment
   template:
     metadata:
       labels:
-        app: flask
+        app: backend-deployment
     spec:
       containers:
-        - name: flaskapp
+        - name: backend-container
           image: flaskapp:1.0
           ports:
             - containerPort: 5000
           envFrom:
             - secretRef:
-                name: flaskapp-secrets
+                name: database-secrets
           resources: {}
 
         - name: nginx
@@ -38,19 +38,19 @@ spec:
       volumes:
         - name: nginx-config
           configMap:
-            name: flask-nginx
+            name: webserver-cfg
         - name: public-dir
           emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: flask
+  name: backend-service
   namespace: default
 spec:
   type: ClusterIP
   selector:
-    app: flask
+    app: backend-deployment
   ports:
     - port: 80
       targetPort: 80
