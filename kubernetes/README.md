@@ -8,7 +8,8 @@
 
 ## Prerequisites
 
-- Comprehensive understanding of kubernetes basics, from `kubernetes_basics/`
+- Basic understanding of kubernetes (refer to `kubernetes_basics/` or the linked articles and videos)
+- Docker images created in the minikube ecosystem (otherwise when we create the kubectl deployment the pods will return `STATUS: ErrImagePull`)
 
 ## Create docker images in your local minikube
 
@@ -33,7 +34,7 @@
 - Create `PersistentVolume` for MongoDB
 
   ```bash
-  kubectl apply -f kubernetes/mongo-pv.yaml
+  kubectl apply -f kubernetes/persistentvolumes.yaml
   ```
 
   This creates a storage volume of 256 MB that is to be made available to the mongo container. The contents of this volume persist, even if the MongoDB pod is deleted or moved to a different node.
@@ -41,15 +42,15 @@
 - Create `PersistentVolumeClaim` for the mongo service
 
   ```bash
-  kubectl apply -f kubernetes/mongo-pvc.yaml
+  kubectl apply -f kubernetes/persistentvolumeclaims.yaml
   ```
 
   This is used to claim/obtain the storage created above and can be mounted on the mongo container.
 
-- Create the deployment and service
+- Create the deployment and service for the `database`
 
   ```bash
-  kubectl apply -f kubernetes/mongo.yaml
+  kubectl apply -f kubernetes/deployment_database.yaml
   ```
 
   - The deployment creates a single instance of MongoDB server. Here, we expose the port **27017** which can be accessed by other pods. The persistent volume claimed can be mounted onto a directory on the container.
@@ -60,7 +61,7 @@
 - Create `ConfigMap` for **flask** and **nginx**
 
   ```bash
-  kubectl apply -f kubernetes/flask-cfg.yaml
+  kubectl apply -f kubernetes/configmaps.yaml
   ```
 
   We create two configurations maps. One for the flask application and one for the nginx container.
@@ -68,15 +69,15 @@
 - Create `Ingress`
 
   ```bash
-  kubectl apply -f kubernetes/flask-ing.yaml
+  kubectl apply -f kubernetes/ingress.yaml
   ```
 
   The ingress configuration will be used to access our application in the browser under the `http://dev.k8s/` url
 
-- Create deployment and services
+- Create deployment and services for the `backend`
 
   ```bash
-  kubectl apply -f kubernetes/flask.yaml
+  kubectl apply -f kubernetes/deployment_backend.yaml
   ```
 
   For a better understanding of what happens here, when you make a request to the url **http://dev.k8s/**, the browser will make a request to the minikube instance and will match the ingress with the url defined earlier which will connect to the flask service which will connect to the **nginx** container in the running pod of the **flask** application.

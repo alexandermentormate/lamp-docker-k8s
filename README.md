@@ -19,8 +19,6 @@
   - kubectl (Client Version: v1.20.4; Server Version: v1.25.2)
   - (optional) helm (v3.7.0)
 
-- Docker image created locally (otherwise when we create k8s deployment the pods will return `STATUS: ErrImagePull`)
-
 ## Quick local setup. **The prerequisites must be met!**
 
   ```bash
@@ -99,7 +97,7 @@
   `Docker compose` allows you to easily define and deploy your containers and operate multi-container applications at once by using a build definition in the for of `yml`/ `yaml` files. However this is not a production based solution and it's only convenient for local development.
 
 - In our `docker-compose.yaml` we define each service that we use in our project. In our case:
-  - `flask` - is our `backend` - **Flask** service. Let's take a look at the more interesting parts.
+  - `backend` - **Flask** service. Let's take a look at the more interesting parts.
     The `build` part points to the `context` (the `sourcecode`) where the `container` for this service will get it's content from and the `Dockerfile` that will be used to create the `image` from.
     ```yaml
     build:
@@ -132,14 +130,15 @@
       - ./services/backend:/app
     ```
 
-    The `networks` parameter is responsible for defining in which networks the respective service will be a part of. In our case we have custom `backend` for the `flask` service and the `mongodb`.
+    The `networks` parameter is responsible for defining in which networks the respective service will be a part of. In our case we have custom `backend-net` for the `backend` service and the `database`.
     ```yaml
     networks:
-      - backend
+      - frontend-net
+      - backend-net
     ```
 
-  - `mongodb` - is our `database` - **MongoDb** service.
-    Here we specify an existing image that we've pulled from dockerhub and not one we've created ourselves, like in the `flask` service. That's why we do not have a `build` parameter.
+  - `database` - **MongoDb** service.
+    Here we specify an existing image that we've pulled from dockerhub and not one we've created ourselves, like in the `backend` service. That's why we do not have a `build` parameter.
     ```yaml
     image: mongo:4.0.8
     ```
@@ -151,20 +150,20 @@
       - mongodbdata:/data/db
     ```
   
-  - `webserver` - is our `webserver`- **Nginx** service.
+  - `webserver`- **Nginx** service.
 
-  - `frontend` - is our `frontend` - **Vue** frontend service. Both the `webserver` and `frontend` are a part of the same network, called `frontend`.
+  - `frontend` - **Vue** frontend service. Both the `webserver` and `frontend` are a part of the same network, called `frontend`.
     ```yaml
     networks:
-      - frontend
+      - frontend-net
     ```
 
   - `networks` and `volumes` - as mentioned previously the `networks` are responsible for creating custom communication between services and the `volumes` alocate space for persistent data.
     ```yaml
     networks:
-      frontend:
+      frontend-net:
         driver: bridge
-      backend:
+      backend-net:
         driver: bridge
 
     volumes:

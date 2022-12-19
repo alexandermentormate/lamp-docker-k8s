@@ -2,7 +2,7 @@
 RED='\033[0;31m'
 GREEN='\032[0;312m'
 NC='\033[0m'
-USAGE="$(basename "$0") [-h] [-d --destroy] [-r --rebuild <image_name>] -- program to calculate the answer to life, the universe and everything
+USAGE="$(basename "$0") [-h] [-d --destroy] [-r --rebuild <image_name>] -- deploy script for the project that builds and runs the project on hostname ${RED}dev.k8s${NC}.
 
 where:
     -h  show this help text
@@ -22,13 +22,13 @@ if [ "$1" = "--destroy" ]
 
     echo "${RED}Tearing down the local minikube project${NC}"
 
-    kubectl delete -f kubernetes/flask.yaml
-    kubectl delete -f kubernetes/mongo.yaml
+    kubectl delete -f kubernetes/deployment_backend.yaml
+    kubectl delete -f kubernetes/deployment_database.yaml
     kubectl delete -f kubernetes/secrets.yaml
-    kubectl delete -f kubernetes/flask-cfg.yaml
-    kubectl delete -f kubernetes/flask-ing.yaml
-    kubectl delete -f kubernetes/mongo-pvc.yaml
-    kubectl delete -f kubernetes/mongo-pv.yaml
+    kubectl delete -f kubernetes/configmaps.yaml
+    kubectl delete -f kubernetes/ingress.yaml
+    kubectl delete -f kubernetes/persistentvolumeclaims.yaml
+    kubectl delete -f kubernetes/persistentvolumes.yaml
 
     echo "${RED}Done!${NS}"
 
@@ -48,23 +48,23 @@ kubectl apply -f ./kubernetes/secrets.yaml
 
 echo "Creating the mongo volume"
 
-kubectl apply -f ./kubernetes/mongo-pv.yaml
-kubectl apply -f ./kubernetes/mongo-pvc.yaml
+kubectl apply -f ./kubernetes/persistentvolumes.yaml
+kubectl apply -f ./kubernetes/persistentvolumeclaims.yaml
 
 
 echo "Creating the mongodb deployment and service"
 
-kubectl create -f ./kubernetes/mongo.yaml
+kubectl create -f ./kubernetes/deployment_database.yaml
 
 
 echo "Apply the flaskapp config"
-kubectl apply -f ./kubernetes/flask-cfg.yaml
+kubectl apply -f ./kubernetes/configmaps.yaml
 
 
 echo "Create the flaskapp ingress"
 
 minikube addons enable ingress
-kubectl apply -f ./kubernetes/flask-ing.yaml
+kubectl apply -f ./kubernetes/ingress.yaml
 
 
 if [ "$1" = "-r" ] || [ "$1" = "--rebuild" ]
@@ -78,9 +78,9 @@ if [ "$1" = "-r" ] || [ "$1" = "--rebuild" ]
     fi
 
     echo "${GREEN}Building new flask image called $image_name${NC}"
-    docker build -t $image_name .
+    docker build -t $image_name ./services/backend/
 fi
 
 echo "Create or Restart existing flaskapp deployment / services"
-kubectl delete -f ./kubernetes/flask.yaml
-kubectl apply -f ./kubernetes/flask.yaml
+kubectl delete -f ./kubernetes/deployment_backend.yaml
+kubectl apply -f ./kubernetes/deployment_backend.yaml
