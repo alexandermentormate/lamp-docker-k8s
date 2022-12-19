@@ -1,7 +1,7 @@
 #!/bin/bash
-RED='\033[0;31m'
-GREEN='\032[0;312m'
-NC='\033[0m'
+RED='\e[31m'
+GREEN='\e[32m'
+NC='\e[0m'
 USAGE="$(basename "$0") [-h] [-d --destroy] [-r --rebuild <image_name>] -- deploy script for the project that builds and runs the project on hostname ${RED}dev.k8s${NC}.
 
 where:
@@ -22,13 +22,13 @@ if [ "$1" = "--destroy" ]
 
     echo "${RED}Tearing down the local minikube project${NC}"
 
-    kubectl delete -f kubernetes/deployment_backend.yaml
-    kubectl delete -f kubernetes/deployment_database.yaml
-    kubectl delete -f kubernetes/secrets.yaml
-    kubectl delete -f kubernetes/configmaps.yaml
-    kubectl delete -f kubernetes/ingress.yaml
-    kubectl delete -f kubernetes/persistentvolumeclaims.yaml
-    kubectl delete -f kubernetes/persistentvolumes.yaml
+    kubectl delete -f kubernetes/6-deployment_backend.yaml
+    kubectl delete -f kubernetes/5-deployment_database.yaml
+    kubectl delete -f kubernetes/4-ingress.yaml
+    kubectl delete -f kubernetes/3-configmaps.yaml
+    kubectl delete -f kubernetes/2-persistentvolumeclaims.yaml
+    kubectl delete -f kubernetes/1-persistentvolumes.yaml
+    kubectl delete -f kubernetes/0-secrets.yaml
 
     echo "${RED}Done!${NS}"
 
@@ -41,31 +41,30 @@ echo "Include the ${RED}dev.k8s${NC} domain to /etc/hosts if not present"
 grep -qxF "$(minikube ip) dev.k8s" /etc/hosts || sudo bash -c "echo \"$(minikube ip) dev.k8s\" >> /etc/hosts"
 
 
-echo "Creating the database credentials"
+echo "Creating the ${GREEN}secrets${NC}: environment variables and credentials"
 
-kubectl apply -f ./kubernetes/secrets.yaml
-
-
-echo "Creating the mongo volume"
-
-kubectl apply -f ./kubernetes/persistentvolumes.yaml
-kubectl apply -f ./kubernetes/persistentvolumeclaims.yaml
+kubectl apply -f ./kubernetes/0-secrets.yaml
 
 
-echo "Creating the mongodb deployment and service"
+echo "Creating the ${GREEN}persistent volumes${NC} and ${GREEN}persistent volume claims${NC} for the database"
 
-kubectl create -f ./kubernetes/deployment_database.yaml
-
-
-echo "Apply the flaskapp config"
-kubectl apply -f ./kubernetes/configmaps.yaml
+kubectl apply -f ./kubernetes/1-persistentvolumes.yaml
+kubectl apply -f ./kubernetes/2-persistentvolumeclaims.yaml
 
 
-echo "Create the flaskapp ingress"
+echo "Applyinf rhw ${GREEN}configmaps${NC}"
+kubectl apply -f ./kubernetes/3-configmaps.yaml
+
+
+echo "Creating the ${GREEN}ingress${NC}"
 
 minikube addons enable ingress
-kubectl apply -f ./kubernetes/ingress.yaml
+kubectl apply -f ./kubernetes/4-ingress.yaml
 
+
+echo "Creating the ${GREEN}deployment${NC} for the database service"
+
+kubectl create -f ./kubernetes/5-deployment_database.yaml
 
 if [ "$1" = "-r" ] || [ "$1" = "--rebuild" ]
   then
@@ -81,6 +80,6 @@ if [ "$1" = "-r" ] || [ "$1" = "--rebuild" ]
     docker build -t $image_name ./services/backend/
 fi
 
-echo "Create or Restart existing flaskapp deployment / services"
-kubectl delete -f ./kubernetes/deployment_backend.yaml
-kubectl apply -f ./kubernetes/deployment_backend.yaml
+echo "Creating or restarting existing ${GREEN}deployment${NC} for the backend service"
+kubectl delete -f ./kubernetes/6-deployment_backend.yaml
+kubectl apply -f ./kubernetes/6-deployment_backend.yaml

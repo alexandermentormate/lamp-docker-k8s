@@ -17,28 +17,15 @@ spec:
       containers:
         - name: flaskapp
           image: flaskapp:1.0
-          # resources:
-          #   requests:
-          #     memory: "64Mi"
-          #     cpu: "250m"
-          #   limits:
-          #     memory: "128Mi"
-          #     cpu: "500m"
           ports:
             - containerPort: 5000
           envFrom:
             - secretRef:
                 name: flaskapp-secrets
+          resources: {}
 
         - name: nginx
           image: nginx
-          resources:
-            requests:
-              memory: "64Mi"
-              cpu: "250m"
-            limits:
-              memory: "128Mi"
-              cpu: "500m"
           imagePullPolicy: Always
           ports:
             - containerPort: 80
@@ -47,6 +34,7 @@ spec:
               name: nginx-config
             - mountPath: /app/public
               name: public-dir
+          resources: {}
       volumes:
         - name: nginx-config
           configMap:
