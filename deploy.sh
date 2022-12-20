@@ -22,6 +22,7 @@ if [ "$1" = "--destroy" ]
 
     echo "${RED}Tearing down the local minikube project${NC}"
 
+    kubectl delete -f kubernetes/7-deployment_webserver.yaml
     kubectl delete -f kubernetes/6-deployment_backend.yaml
     kubectl delete -f kubernetes/5-deployment_database.yaml
     kubectl delete -f kubernetes/4-ingress.yaml
@@ -83,3 +84,7 @@ fi
 echo "Creating or restarting existing ${GREEN}deployment${NC} for the backend service"
 kubectl delete -f ./kubernetes/6-deployment_backend.yaml
 kubectl apply -f ./kubernetes/6-deployment_backend.yaml
+
+echo "Creating or restarting existing ${GREEN}deployment${NC} for the webserver service"
+kubectl delete -f ./kubernetes/7-deployment_webserver.yaml
+kubectl apply -f ./kubernetes/7-deployment_webserver.yaml

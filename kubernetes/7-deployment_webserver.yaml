@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webserver-deployment
+  labels:
+    app: webserver-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webserver-deployment
+  template:
+    metadata:
+      labels:
+        app: webserver-deployment
+    spec:
+      containers:
+        - name: webserver-container
+          image: nginx
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - mountPath: /webserver_configmap
+              name: nginx-config
+          resources: {}
+          env:
+            - name: backend_host
+              value: $(BACKEND_SERVICE_SERVICE_HOST)
+            - name: backend_port
+              value: $(BACKEND_SERVICE_SERVICE_PORT)
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  [
+                    "/bin/sh",
+                    "-c",
+                    "envsubst '${backend_host} ${backend_port}' < /webserver_configmap/nginx-default.conf.template > /etc/nginx/conf.d/default.conf && nginx -s reload"
+                  ]
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: webserver-cfg
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webserver-service
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: webserver-deployment
+  ports:
+    - port: 80
+      targetPort: 80
