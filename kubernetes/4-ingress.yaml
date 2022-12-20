@@ -1,6 +1,8 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
   name: frontend-ingress
   namespace: default
 spec:
@@ -12,6 +14,6 @@ spec:
             pathType: ImplementationSpecific
             backend:
               service:
-                name: backend-service
+                name: webserver-service
                 port:
                   number: 80

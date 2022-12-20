@@ -23,24 +23,6 @@ spec:
             - secretRef:
                 name: database-secrets
           resources: {}
-
-        - name: nginx
-          image: nginx
-          imagePullPolicy: Always
-          ports:
-            - containerPort: 80
-          volumeMounts:
-            - mountPath: /etc/nginx/conf.d
-              name: nginx-config
-            - mountPath: /app/public
-              name: public-dir
-          resources: {}
-      volumes:
-        - name: nginx-config
-          configMap:
-            name: webserver-cfg
-        - name: public-dir
-          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -52,5 +34,5 @@ spec:
   selector:
     app: backend-deployment
   ports:
-    - port: 80
-      targetPort: 80
+    - port: 5000
+      targetPort: 5000
