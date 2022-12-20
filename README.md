@@ -183,6 +183,12 @@
 - Microservice based deployment for the existing prod codebase `kubernetes/` -> README.md
 
 ## TODOS
+### Highest priority
+- Describe the most important components of the kubernetes yaml files (the setup for nginx + configmap + env variables)
+- Finish the frontend kubernetes integration
+### Middle priority
 - Create git subtrees for Kubernetes Basics
 - Create EKS and ECS integration examples in subtrees
+### Lowest priority
 - Include unit test coverage
+- Include a CI/CD integration
