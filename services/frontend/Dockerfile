@@ -11,7 +11,7 @@ RUN npm install
 COPY . .
 
 # Flask api
-RUN ROOT_API=http://localhost:5000 npm run build
+RUN npm run build
 
 EXPOSE 8080
 
