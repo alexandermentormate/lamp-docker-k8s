@@ -25,6 +25,10 @@ spec:
               name: nginx-config
           resources: {}
           env:
+            - name: frontend_host
+              value: $(FRONTEND_SERVICE_SERVICE_HOST)
+            - name: frontend_port
+              value: $(FRONTEND_SERVICE_SERVICE_PORT)
             - name: backend_host
               value: $(BACKEND_SERVICE_SERVICE_HOST)
             - name: backend_port
@@ -36,7 +40,7 @@ spec:
                   [
                     "/bin/sh",
                     "-c",
-                    "envsubst '${backend_host} ${backend_port}' < /webserver_configmap/nginx-default.conf.template > /etc/nginx/conf.d/default.conf && nginx -s reload"
+                    "envsubst '${frontend_host} ${frontend_port} ${backend_host} ${backend_port}' < /webserver_configmap/nginx-default.conf.template > /etc/nginx/conf.d/default.conf && nginx -s reload"
                   ]
       volumes:
         - name: nginx-config

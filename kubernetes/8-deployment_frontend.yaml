@@ -18,6 +18,9 @@ spec:
       containers:
       - name: frontend-container
         image: vueapp:1.0
+        envFrom:
+          - secretRef:
+              name: frontend-secrets
         resources: {}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
