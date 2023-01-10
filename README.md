@@ -184,11 +184,10 @@
 
 ## TODOS
 ### Highest priority
-- Describe the most important components of the kubernetes yaml files (the setup for nginx + configmap + env variables)
-- Finish the frontend kubernetes integration
+- Create EKS and ECS integration examples in subtrees with documentation
 ### Middle priority
 - Create git subtrees for Kubernetes Basics
-- Create EKS and ECS integration examples in subtrees
+- Include 3rd party service (maybe redis)
 ### Lowest priority
 - Include unit test coverage
 - Include a CI/CD integration

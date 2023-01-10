@@ -26,7 +26,7 @@
 
 - `kubernetes object type` is the shorthand for object described in the yaml file. For a full list of objects available on your   cluster and their respective shortnames, try:
   ```bash
-  kubectl api-resources.
+  kubectl api-resources
   ```
 
 - `description` contains a word or two as a reminder of what the object is for and how it will be used.
