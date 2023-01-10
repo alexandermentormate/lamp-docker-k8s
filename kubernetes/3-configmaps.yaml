@@ -17,7 +17,12 @@ data:
     server {
         listen 80;
 
+        location /api/ {
+            proxy_pass http://${backend_host}:${backend_port}/;
+            proxy_redirect default;
+        }
+
         location / {
-            proxy_pass http://${backend_host}:${backend_port};
+            proxy_pass http://${frontend_host}:${frontend_port};
         }
     }

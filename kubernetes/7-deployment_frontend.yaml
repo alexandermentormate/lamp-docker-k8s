@@ -5,7 +5,6 @@ metadata:
     name: frontend-deployment
   name: frontend-deployment
 spec:
-  progressDeadlineSeconds: 300
   replicas: 1
   selector:
     matchLabels:
@@ -18,14 +17,19 @@ spec:
       containers:
       - name: frontend-container
         image: vueapp:1.0
+        envFrom:
+          - secretRef:
+              name: frontend-secrets
         resources: {}
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
-      dnsPolicy: ClusterFirst
-      restartPolicy: Always
-      schedulerName: default-scheduler
-      securityContext: {}
-      terminationGracePeriodSeconds: 30
+        lifecycle:
+            postStart:
+              exec:
+                command:
+                  [
+                    "/bin/sh",
+                    "-c",
+                    "npm run build"
+                  ]
 ---
 apiVersion: v1
 kind: Service
