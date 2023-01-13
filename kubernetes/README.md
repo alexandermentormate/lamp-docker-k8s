@@ -81,21 +81,18 @@
   The kubernetes `Secret` is an object that contains a small amount of sensitive data such as a password, a token, or a key.
   ```yaml
   apiVersion: v1
-  kind: Secret
-  metadata:
-    name: database-secrets
-  type: Opaque
-  data:
-    MONGODB_USERNAME: Zmxhc2t1c2Vy
-    MONGODB_PASSWORD: bW9uZ29wYXNz
-    MONGODB_HOSTNAME: ZGF0YWJhc2Utc2VydmljZQ==
-    MONGODB_DATABASE: Zmxhc2tkYg==
-    MONGODB_PORT: MjcwMTc=
+    kind: Secret
+    metadata:
+      name: frontend-secrets
+    type: Opaque
+    data:
+      ROOT_API: aHR0cDovL2Rldi5rOHMvYXBp  # evaluates to http://dev.k8s/api (base64 encoded)
   ```
 - `kind` - Specify that the type of the configuration is of kind `Secret`
 - `metadata` -> **name** - The name of this particular secret
 - `type` - The Secret type is used to facilitate programmatic handling of the Secret data
 - `data` - The data that this secret holds in a key-value pair format, **encoded explicitly by us**, because Kubernetes Secrets are, by default, stored unencrypted in the API server's underlying data store (etcd)
+- Important thing to note about the `ROOT_API` - in our case we need to add not only the FQDN(or DNS) but to include the protocol `http://` (or `https://`) and `/api`
 
 ## 1-persistentvolumes.yaml
   A PersistentVolume (PV) is a piece of storage in the cluster that has been provisioned. It is a resource in the cluster just like a node is a cluster resource.
