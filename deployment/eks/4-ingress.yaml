@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+  name: frontend-ingress
+  namespace: default
+spec:
+  rules:
+    - host: a6350d35187654a8eb70e3535ca3b7b5-452790203.eu-central-1.elb.amazonaws.com
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: webserver-service
+                port:
+                  number: 80

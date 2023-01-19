@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: database-deployment
+  template:
+    metadata:
+      labels:
+        app: database-deployment
+    spec:
+      containers:
+        - name: database-container
+          image: mongo
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: storage
+              mountPath: /data/db
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  [
+                    "/bin/sh",
+                    "-c",
+                    "mongosh --eval \"if (db.getSiblingDB('admin').getUser('${MONGODB_USERNAME}') == null) { db.getSiblingDB('admin').createUser( { user: '${MONGODB_USERNAME}', pwd: '${MONGODB_PASSWORD}', roles: [ { role: 'dbAdmin', db: '${MONGODB_DATABASE}' },] } ); }\"",
+                  ]
+          envFrom:
+            - secretRef:
+                name: database-secrets
+          resources: {}
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: database-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: database-service
+spec:
+  type: ClusterIP
+  selector:
+    app: database-deployment
+  ports:
+    - port: 27017
+      targetPort: 27017
