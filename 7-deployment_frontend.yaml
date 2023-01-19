@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    name: frontend-deployment
+  name: frontend-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend-deployment
+  template:
+    metadata:
+      labels:
+        app: frontend-deployment
+    spec:
+      containers:
+      - name: frontend-container
+        image: 059127482501.dkr.ecr.eu-central-1.amazonaws.com/test-image-repository:vueapp
+        envFrom:
+          - secretRef:
+              name: frontend-secrets
+        resources: {}
+        lifecycle:
+            postStart:
+              exec:
+                command:
+                  [
+                    "/bin/sh",
+                    "-c",
+                    "npm run build"
+                  ]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: frontend-deployment
+  ports:
+    - port: 8080
+      targetPort: 8080
