@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: backend-container
-          image: 059127482501.dkr.ecr.eu-central-1.amazonaws.com/test-image-repository:flaskapp
+          image: flaskapp:1.0
           ports:
             - containerPort: 5000
           envFrom:

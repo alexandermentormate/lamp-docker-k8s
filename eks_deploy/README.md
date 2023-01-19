@@ -1,157 +1,193 @@
-# EKS deployment
-  This is the continuation for the minikube local deployment example, where we have all the source code and we create the docker images, which we deploy in ECR
+# LAMP stack with Kubernetes and Docker
+  Building project **locally**, that will be in a pre-production state. And potentially ready for deployment in a cloud environment. For now the goals are **EKS** and **ECS** deployment without too much re-configuration.
 
-## Disclaimer
-  If we do not have a registered domain (FQDN), we need to separate the webserver service and apply it first in order to obtain the service dns(external ip), that EKS provides and replace it in the ingress and secrets.
-  For the purpose of this demo we'll go without a FQDN.
+## Overview
+  This template follows a **MVC** architecture in a **containerized environment**, orchestrated by **kubernetes**.
+  The technical stack is interchangeable and the number of services can be scaled up / down in a similar way. The main goal is to have a step-by-step guideline for:
+  - Understadning the basics of `Kubernetes`
+  - Understanding `Docker` and `Docker compose` and how they interact with `Kubernetes`
+  - Building projects (localy) in the most versatile way possible, following best practices.
+  - Migrate monolith project to microservices
+  - Orchestrate existing containerized project in a cloud agnostic architecture.
 
-## Deployment steps:
+## Prerequisites
 
-- Check that we are authenticated with aws cli and that `kubectl` is using the correct `context`
-  - Check kubectl config
-    ```bash
-    kubectl config view
-    ```
-    Example output:
-    ```bash
-    ...
-    contexts:
-    - context:
-        cluster: my-cluster.eu-central-1.eksctl.io
-        user: abozhkov-pc@my-cluster.eu-central-1.eksctl.io
-      name: abozhkov-pc@my-cluster.eu-central-1.eksctl.io
-    - context:
-        cluster: gke_rational-symbol-202020_us-east1-d_staging-cd
-        user: gke_rational-symbol-202020_us-east1-d_staging-cd
-      name: gke_rational-symbol-202020_us-east1-d_staging-cd
-    current-context: abozhkov-pc@my-cluster.eu-central-1.eksctl.io
-    ...
-    ```
-    The `current-context` should be the value of the EKS cluster name (in our case `name: abozhkov-pc@my-cluster.eu-central-1.eksctl.io`)
+- Required packages:
+  - Docker (version 20.10.20)
+  - Docker Compose (version v2.3.3)
+  - minikube (v1.27.1)
+  - kubectl (Client Version: v1.20.4; Server Version: v1.25.2)
+  - (optional) helm (v3.7.0)
 
-  - If the `current-context` is different from the cluster name (for example `minikube`), run:
-    ```bash
-    kubectl config use-context <eks-cluster-name>
-    ```
-- Create new cluster called `my-cluster`
+## Quick local setup. **The prerequisites must be met!**
+
   ```bash
-  eksctl create cluster \
-  --name my-cluster \
-  --region eu-central-1 \
-  --nodegroup-name linux-nodes \
-  --node-type t3.medium \
-  --nodes 1 \
-  --nodes-max=5 \
-  --asg-access
+  sh deploy.sh
   ```
-  Where:
-  - `nodegroup-name` - name of the node groups
-  - `node-type` - type of `EC2` instances we want to run for each node; t3.medium is good for this example, less than that and we run into resource issues
-  - `node` - number of nodes we initially start with; we'll start with 1 with the option to auto-scale, which EKS handles autmatically if on
-  - `nodes-max` - max number of nodes we want; we can't go higher than the preset value, even if autscaling is on
-  - `asg-access` - autoscaling on
 
-- Add admin role for your current user in order to have read access for the cluster, from the aws console (not included by default)
-  - Get the `IAM` user name
+  That's all and you should be good to go if you open **dev.k8s** in the browser.
+
+  For more options use:
   ```bash
-  aws iam get-user
+  sh deploy.sh -h
   ```
+
+## Project structure
+
+- `Codebase` - This is the main portion and the lowest level of abstraction that we have. Our value comes from here and our goal is to use it in the most optimal, stable, scalable and versatile way possible. To achieve this we have to separate each main component into it's own `service`, in order to manage them and the communication between them in the best way possible. The current project is composed of the following services:
+  - `backend` - **Flask**
+  - `frontend` - **Vue**
+  - `database` - **MongoDb**
+  - `webserver` - **Nginx**
+  - `separate worker` - (**TODO...**)
+---
+- `Containerization` -
+  This is our second level of abstraction. Containers are a streamlined way to build, test, deploy, and redeploy applications on multiple environments from a developer’s local laptop to an on-premises data center and even the cloud. Benefits of containers include:
+    - Less overhead - containers require less system resources than traditional or hardware virtual machine environments because they don’t include operating system images.
+    - Increased portability - applications running in containers can be deployed easily to multiple different operating systems and hardware platforms.
+    - More consistent operation - devOps teams know applications in containers will run the same, regardless of where they are deployed.
+    - Greater efficiency - containers allow applications to be more rapidly deployed, patched, or scaled.
+    - Better application development - containers support agile and DevOps efforts to accelerate development, test, and production cycles.
+---
+- `Orchestrating` the containers - 
+  This is our third level of abstraction. Containerized applications can get complicated, however. When in production, many might require hundreds to thousands of separate containers in production. This is where container runtime environments such as `Docker` benefit from the use of other tools to orchestrate or manage all the containers in operation. `Kubernetes` **orchestrates the operation of multiple containers in harmony together**. It manages areas like the use of underlying infrastructure resources for containerized applications such as the amount of compute, network, and storage resources required. Orchestration tools like `Kubernetes` **make it easier to automate and scale container-based workloads for live production environments**.
+
+## Docker
+  As `Docker` is arguably the most popular container runtimes, it'll be our choice here, even though Kubernetes supports numerous container runtimes. A good metaphor that will help us understand how both work together is: Imagine `Kubernetes` as an “operating system” and `Docker containers` as “apps” that you install on the “operating system”.
+ 
+- Start minikube (we'll be using the default driver for it)
+  ```bash
+  minikube start
+  ```
+
+- Obtain the minikube IP:
+  ```bash
+  $ minikube ip
+  192.168.59.100
+  ```
+  In this case it's `192.168.59.100` and that's where the `DOCKER_HOST` will point to.
+
+- **Point the local docker to minikube** - this step is very important, because we have to make sure that all the created images are created in minkube's echosystem and that we can see all the running containers inside it.
+  ```bash
+  minikube docker-env
+  ```
+
   Example output:
   ```bash
-  {
-      "User": {
-          "Path": "/",
-          "UserName": "abozhkov-pc",
-          "UserId": "AIDAQ3RCFZCC5HB45KWYD",
-          "Arn": "arn:aws:iam::059127482501:user/abozhkov-pc",
-          "CreateDate": "2021-11-01T15:52:53+00:00"
-      }
-  }
+  export DOCKER_TLS_VERIFY="1"
+  export DOCKER_HOST="tcp://192.168.59.100:2376"
+  export DOCKER_CERT_PATH="/home/abozhkov/.minikube/certs"
+  export MINIKUBE_ACTIVE_DOCKERD="minikube"
+
+  # To point your shell to minikube's docker-daemon, run:
+  # eval $(minikube -p minikube docker-env)
+
   ```
-  - Create a new admin role that includes all EKS permissions and get the role `arn`
-  - Create the identity mapping
+
+- Copy the output and paste it in the shell.
+
+- Build new image with the tag `flaskapp:1.0`. This will be the main reference that we'll use for our local setup, if we decide to move the a new version, we need to make sure to accommodate this change for all the configuration files.
+
   ```bash
-  eksctl create iamidentitymapping \
-  --cluster my-cluster \
-  --region=eu-central-1 \
-  --arn arn:aws:iam::059127482501:role/MentorMateAdmin \
-  --username abozhkov-pc \
-  --group system:masters
+  docker build -t flaskapp:1.0 ./services/backend/
   ```
-  Where:
-  - `cluster` - cluster name
-  - `arn` - the admin role `arn`
-  - `group` - the group role for kubernetes (in our case we set them as `system:masters`)
+  This new image will be build inside the minikube ecosystem, from where we can access it later from the `.yaml` files
 
-  ### **Important note: Even as an admin, we still don't have access to the master nodes. They are handled by AWS!**
+## Docker Compose
+  `Docker compose` allows you to easily define and deploy your containers and operate multi-container applications at once by using a build definition in the for of `yml`/ `yaml` files. However this is not a production based solution and it's only convenient for local development.
 
-- Create ECR repository and push your `backend` and `frontend` images to it
-  - Create new ECR repository from aws console and get the repo uri (in our case `059127482501.dkr.ecr.eu-central-1.amazonaws.com`)
-  - Retrieve an authentication token and authenticate your Docker client to your registry.
-    ```bash
-    aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin 059127482501.dkr.ecr.eu-central-1.amazonaws.com
-    ```
-  - Build `backend` image, tag and push it to the ECR repo
-    ```bash
-    docker build -t flaskapp:1.0 <path_to_backend_dockerfile>
-    docker tag flaskapp:1.0 059127482501.dkr.ecr.eu-central-1.amazonaws.com/test-image-repository:flaskapp
-    docker push 059127482501.dkr.ecr.eu-central-1.amazonaws.com/test-image-repository:flaskapp
-    ```
-  - Build `frontend` image, tag and push it to the ECR repo
-    ```bash
-    docker build -t vueapp:1.0 <path_to_backend_dockerfile>
-    docker tag vueapp:1.0 059127482501.dkr.ecr.eu-central-1.amazonaws.com/test-image-repository:vueapp
-    docker push 059127482501.dkr.ecr.eu-central-1.amazonaws.com/test-image-repository:vueapp
-    ```
-  - Update the configuration files with the new image uri's
-    - `6-deployment_backend.yaml` -> `spec->containers->image: 059127482501.dkr.ecr.eu-central-1.amazonaws.com/test-image-repository:flaskapp`
-    - `7-deployment_frontend.yaml` -> `spec->containers->image: 059127482501.dkr.ecr.eu-central-1.amazonaws.com/test-image-repository:vueapp`
-
-- Apply the `.yaml` files
-  - First apply the `service_webserver.yaml` in order to obtain `EXTERNAL-IP` (EKS DNS)
-    ```bash
-    kubectl apply -f service_webserver.yaml
-    ```
-  - Get the service
-    ```bash
-    kubectl get svc
-    ```
-    Example output:
-    ```bash
-    NAME                TYPE           CLUSTER-IP       EXTERNAL-IP                                                                 PORT(S)        AGE
-    kubernetes          ClusterIP      10.100.0.1       <none>                                                                      443/TCP        101m
-    webserver-service   LoadBalancer   10.100.210.229   a6350d35187654a8eb70e3535ca3b7b5-452790203.eu-central-1.elb.amazonaws.com   80:31103/TCP   48s
-    ```
-    Our `EXTERNAL-IP` is `a6350d35187654a8eb70e3535ca3b7b5-452790203.eu-central-1.elb.amazonaws.com`
-  - Use the EXTERNAL-IP (EKS DNS) from the **webserver service** to manually update:
-    - `0-secrets.yaml` -> `data->ROOT_API: <BASE64_EXTERNAL-IP>`<br />
-      The `<EXTERNAL-IP>` has to be base64 encoded in a `http://<EXTERNAL-IP>/api` format. Example:
-      ```bash
-      echo  'http://<EXTERNAL-IP>/api' | base64
-      ```
-    - `4-ingress.yaml` -> `spec->rules->host: <EXTERNAL-IP>`
-  - Apply the rest of the files in the original order
-    ```bash
-    kubectl apply -f 0-secrets.yaml &\
-    kubectl apply -f 1-persistentvolumes.yaml &\
-    kubectl apply -f 2-persistentvolumeclaims.yaml &\
-    kubectl apply -f 3-configmaps.yaml &\
-    kubectl apply -f 4-ingress.yaml &\
-    kubectl apply -f 5-deployment_database.yaml &\
-    kubectl apply -f 6-deployment_backend.yaml &\
-    kubectl apply -f 7-deployment_frontend.yaml &\
-    kubectl apply -f 8-deployment_webserver.yaml
+- In our `docker-compose.yaml` we define each service that we use in our project. In our case:
+  - `backend` - **Flask** service. Let's take a look at the more interesting parts.
+    The `build` part points to the `context` (the `sourcecode`) where the `container` for this service will get it's content from and the `Dockerfile` that will be used to create the `image` from.
+    ```yaml
+    build:
+        context: ./services/backend
+        dockerfile: Dockerfile
     ```
 
-- Check all the running resources
+    We sepcify the `ports` that we need for our application. In this case flask uses 5000.
+    ```yaml
+    ports:
+      - "5000:5000"
+    ```
+
+    The `environement` key is used to set env variables for this service.
+    ```yaml
+    environment:
+      APP_ENV: "prod"
+      APP_DEBUG: "False"
+      APP_PORT: 5000
+      MONGODB_DATABASE: flaskdb
+      MONGODB_USERNAME: flaskuser
+      MONGODB_PASSWORD: mongopass
+      MONGODB_HOSTNAME: mongodb
+      MONGODB_PORT: 27017
+    ```
+
+    The `volumes` are the preferred mechanism for **persisting** data generated by and used by the container.
+    ```yaml
+    volumes:
+      - ./services/backend:/app
+    ```
+
+    The `networks` parameter is responsible for defining in which networks the respective service will be a part of. In our case we have custom `backend-net` for the `backend` service and the `database`.
+    ```yaml
+    networks:
+      - frontend-net
+      - backend-net
+    ```
+
+  - `database` - **MongoDb** service.
+    Here we specify an existing image that we've pulled from dockerhub and not one we've created ourselves, like in the `backend` service. That's why we do not have a `build` parameter.
+    ```yaml
+    image: mongo:4.0.8
+    ```
+    
+    In our `volumes` we point the service to a bash script called `mongo-init.sh`, responsible for prepopulating the database.
+    ```yaml
+    volumes:
+      - ./services/database/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
+      - mongodbdata:/data/db
+    ```
+  
+  - `webserver`- **Nginx** service.
+
+  - `frontend` - **Vue** frontend service. Both the `webserver` and `frontend` are a part of the same network, called `frontend`.
+    ```yaml
+    networks:
+      - frontend-net
+    ```
+
+  - `networks` and `volumes` - as mentioned previously the `networks` are responsible for creating custom communication between services and the `volumes` alocate space for persistent data.
+    ```yaml
+    networks:
+      frontend-net:
+        driver: bridge
+      backend-net:
+        driver: bridge
+
+    volumes:
+      mongodbdata:
+        driver: local
+      nginxdata:
+        driver: local
+    ```
+- Build and run the app from `docker compose` (`docker-compose` if you're using **v1**)
   ```bash
-  kubectl get all -o wide
+  docker compose up --build -d
   ```
 
----
-## TODO:
+## Kubernetes (**k8s**)
 
-1. Test the setup from scratch - DONE!
-2. Create proper documentation - DONE!
-3. Create this as a subtree for the main repository
-4. Check if the local setup can run with `LoadBalancer` webserver service and maybe readjust it
+- Basic local deployment for the step-by-step guide and **Helm** basic integration `kubernetes_basics/` -> README.md
+- Microservice based deployment for the existing prod codebase `kubernetes/` -> README.md
+
+## TODOS
+### Highest priority
+- Create EKS and ECS integration examples in subtrees with documentation
+### Middle priority
+- Create git subtrees for Kubernetes Basics
+- Include 3rd party service (maybe redis)
+### Lowest priority
+- Include unit test coverage
+- Include a CI/CD integration

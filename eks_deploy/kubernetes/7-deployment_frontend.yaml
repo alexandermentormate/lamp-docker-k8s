@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: frontend-container
-        image: 059127482501.dkr.ecr.eu-central-1.amazonaws.com/test-image-repository:vueapp
+        image: vueapp:1.0
         envFrom:
           - secretRef:
               name: frontend-secrets
