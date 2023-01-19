@@ -147,11 +147,3 @@
   ```bash
   kubectl get all -o wide
   ```
-
----
-## TODO:
-
-1. Test the setup from scratch - DONE!
-2. Create proper documentation - DONE!
-3. Create this as a subtree for the main repository - DONE!
-4. Check if the local setup can run with `LoadBalancer` webserver service and maybe readjust it
