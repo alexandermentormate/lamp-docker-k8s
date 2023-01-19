@@ -7,7 +7,7 @@ metadata:
   namespace: default
 spec:
   rules:
-    - host: a6350d35187654a8eb70e3535ca3b7b5-452790203.eu-central-1.elb.amazonaws.com
+    - host: dev.k8s
       http:
         paths:
           - path: /
