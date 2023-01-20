@@ -181,7 +181,8 @@
   ```
 ## TODOS
 ### High priority
-- Create ECS integration examples in subtrees with documentation
+- Create ECS deployment
+### Mid priority
+- Include a CI/CD integration
 ### Low priority
 - Include unit test coverage
-- Include a CI/CD integration
