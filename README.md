@@ -1,5 +1,8 @@
 # LAMP stack with Kubernetes and Docker
-  Building project **locally**, that will be in a pre-production state. And potentially ready for deployment in a cloud environment. For now the goals are **EKS** and **ECS** deployment without too much re-configuration.
+  Building project **locally**, that will be in a pre-production state. And potentially ready for deployment in a cloud environment.<br />
+  There is basic kubernetes setup, using **Helm** (`helm/`).<br />
+  The deployment process covers:
+  - **EKS** (`deployment/eks`)
 
 ## Overview
   This template follows a **MVC** architecture in a **containerized environment**, orchestrated by **kubernetes**.
@@ -175,12 +178,6 @@
   ```bash
   docker compose up --build -d
   ```
-
-## Kubernetes (**k8s**)
-
-- Basic local deployment for the step-by-step guide and **Helm** basic integration `kubernetes_basics/` -> README.md
-- Microservice based deployment for the existing prod codebase `kubernetes/` -> README.md
-
 ## TODOS
 ### High priority
 - Create ECS integration examples in subtrees with documentation
