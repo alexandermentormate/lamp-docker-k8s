@@ -1,5 +1,6 @@
 # LAMP stack with Kubernetes and Docker
   Building project **locally**, that will be in a pre-production state. And potentially ready for deployment in a cloud environment.<br />
+  **Each section (`deployment/`, `helm/`, `kubernetes/`) has step-by-step documentation.**<br />
   There is basic kubernetes setup, using **Helm** (`helm/`).<br />
   The deployment process covers:
   - **EKS** (`deployment/eks`)
