@@ -39,7 +39,6 @@
   - `frontend` - **Vue**
   - `database` - **MongoDb**
   - `webserver` - **Nginx**
-  - `separate worker` - (**TODO...**)
 ---
 - `Containerization` -
   This is our second level of abstraction. Containers are a streamlined way to build, test, deploy, and redeploy applications on multiple environments from a developer’s local laptop to an on-premises data center and even the cloud. Benefits of containers include:
@@ -184,7 +183,8 @@
 
 ## TODOS
 ### Highest priority
-- Create EKS and ECS integration examples in subtrees with documentation
+- Create ECS integration examples in subtrees with documentation
+- Test the LoadBalancer type for lical minikube development
 ### Middle priority
 - Create git subtrees for Kubernetes Basics
 - Include 3rd party service (maybe redis)
