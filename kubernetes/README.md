@@ -274,6 +274,15 @@
         - name: nginx-config
           configMap:
             name: webserver-cfg
+  ...
+  ---
+  apiVersion: v1
+  kind: Service
+  ...
+  spec:
+    type: LoadBalancer
+  ...
   ```
 - `spec.containers.env` - explicitly added environemntal variabels. In our case we use the environemnt-injected ones in the format that kubernetes names them, for example the `SERVICE_HOST` -> `<service_name>_SERVICE_HOST`
 - `volumes.configMap` - we're using predefined configurations from our config map. In our case we use nginx specific configurations (`nginx-default.conf.template`) so that we have proxy passes for both the `backend` and `frontend`
+- (the Service) `spec.type: LoadBalancer` - `LoadBalancer` exposes the service externally using a cloud provider's load balancer. This will be usefull for a cloud deploy, in our case the `EXTERNAL-IP` will be with status `<pending>`

@@ -46,17 +46,17 @@ spec:
         - name: nginx-config
           configMap:
             name: webserver-cfg
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: webserver-service
-  namespace: default
-spec:
-  type: LoadBalancer
-  selector:
-    app: webserver-deployment
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80
+# NOTE: For the purpose of the example we need to apply this service first, to obtain the EXTERNAL-IP, since we don't have FQDN (domain)
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: webserver-service
+#   namespace: default
+# spec:
+#   type: ClusterIP
+#   selector:
+#     app: webserver-deployment
+#   ports:
+#     - port: 80
+#       targetPort: 80
