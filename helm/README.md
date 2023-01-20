@@ -1,4 +1,5 @@
-# Kubernetes basics
+# Helm basics
+  Basic example on how to create **Helm** based deployment locally.
 
 - Create `kubernetes_basics/deployment.yaml` file
 
