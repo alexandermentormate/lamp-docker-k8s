@@ -182,12 +182,8 @@
 - Microservice based deployment for the existing prod codebase `kubernetes/` -> README.md
 
 ## TODOS
-### Highest priority
+### High priority
 - Create ECS integration examples in subtrees with documentation
-- Test the LoadBalancer type for lical minikube development
-### Middle priority
-- Create git subtrees for Kubernetes Basics
-- Include 3rd party service (maybe redis)
-### Lowest priority
+### Low priority
 - Include unit test coverage
 - Include a CI/CD integration
