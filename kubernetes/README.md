@@ -9,6 +9,27 @@
 
 - **Disclaimer** - all the steps below are atomatically handled in the `deploy.sh` script
 
+## Pros and Cons of using Kubernetes
+- Pros:
+
+  - Scalability: k8s can easily scale applications up or down based on demand
+
+  - Flexibility: k8s allows for easy deployment of applications across multiple environments, including on-premises, in the cloud, or in a hybrid environment
+
+  - High availability: k8s provides built-in mechanisms for ensuring high availability of applications
+
+  - Large ecosystem: k8s has a large and active community, which means there are many resources and tools available to help users manage their deployments
+
+- Cons:
+
+  - Complexity: k8s can be complex to set up and manage, especially for new users
+
+  - Resource requirements: k8s requires a significant amount of resources, including memory and CPU, to run properly
+
+  - Learning curve: k8s has a steep learning curve, which can make it difficult for new users to get started
+
+  - Support: Kubernetes is open-source and doesn't have any official support
+
 ## Prerequisites
 
 - Basic understanding of kubernetes (refer to `kubernetes_basics/` or the linked articles and videos)
