@@ -179,10 +179,6 @@
   ```bash
   docker compose up --build -d
   ```
+
 ## TODOS
-### High priority
 - Create ECS deployment
-### Mid priority
-- Include a CI/CD integration
-### Low priority
-- Include unit test coverage
